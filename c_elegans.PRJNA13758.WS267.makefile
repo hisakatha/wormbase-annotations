@@ -1,3 +1,5 @@
+# Copyright 2019 Yusuke Takahashi
+# SPDX-License-Identifier: Apache-2.0
 annot_orig := c_elegans.PRJNA13758.WS267.annotations.gff3.gz
 annot := $(annot_orig).ucsc_chr
 
