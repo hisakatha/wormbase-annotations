@@ -126,44 +126,44 @@ $(annot).intron_outside_exon: $(annot).intron.sorted.merged $(annot).exon.sorted
 
 $(names): %.names: %
 	#cat $? | sed -E "s/.*Parent=Transcript:([-_.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
-	cat $? | sed -E "s/.*=Transcript:([-_.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
+	cat $< | sed -E "s/.*=Transcript:([-_.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
 
 $(names2): %.names: %
-	cat $? | sed -E "s/.*Name=([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
+	cat $< | sed -E "s/.*Name=([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
 
 $(gene_pseudo_exon): %.names.gene: %
-	cat $? | sed -E "s/.*Parent=Pseudogene:([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
+	cat $< | sed -E "s/.*Parent=Pseudogene:([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
 
 $(gene_pseudo): %.names.gene: %
-	cat $? | sed -E "s/.*sequence_name=([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
+	cat $< | sed -E "s/.*sequence_name=([-_\.0-9a-zA-Z]+).*/\1/" | sort -V | uniq > $@
 
-$(tss_up500): $(annot).five_prime_utr.sorted
-	bedtools flank -g $(genome) -s -l 500 -r 0 -i $? | bedtools slop -s -l 0 -r 1 -g $(genome) | awk -v OFS="\t" '{$$3 = "TSS [-500, 0]"; print $$0}' > $@
+$(tss_up500): $(annot).five_prime_utr.sorted $(genome)
+	bedtools flank -g $(genome) -s -l 500 -r 0 -i $< | bedtools slop -s -l 0 -r 1 -g $(genome) | awk -v OFS="\t" '{$$3 = "TSS [-500, 0]"; print $$0}' > $@
 
-$(tss_down500): $(annot).five_prime_utr.sorted
+$(tss_down500): $(annot).five_prime_utr.sorted $(genome)
 	@# This is wrong!
 	@#bedtools flank -g $(genome) -s -l 0 -r 500 -i $? | bedtools slop -s -l 1 -r 0 -g $(genome) | awk -v OFS="\t" '{$$3 = "TSS [0, 500]"; print $$0}' > $@
 	@# Note that the input is GFF
 	cat $< | awk -v OFS="\t" '{if($$7 == "+"){$$5 = $$4; print $$0}else if($$7 == "-"){$$4 = $$5; print $$0}else{print "Unexpected strand at Line " NR; exit 1}}' | \
 		bedtools slop -s -l 0 -r 500 -g $(genome) > $@
 
-$(tts_up500): $(annot).three_prime_utr.sorted
+$(tts_up500): $(annot).three_prime_utr.sorted $(genome)
 	@# This is wrong!
 	@#bedtools flank -g $(genome) -s -l 500 -r 0 -i $? | bedtools slop -s -l 0 -r 1 -g $(genome) | awk -v OFS="\t" '{$$3 = "TTS [-500, 0]"; print $$0}' > $@
 	@# Note that the input is GFF
 	cat $< | awk -v OFS="\t" '{if($$7 == "+"){$$4 = $$5; print $$0}else if($$7 == "-"){$$5 = $$4; print $$0}else{print "Unexpected strand at Line " NR; exit 1}}' | \
 		bedtools slop -s -l 500 -r 0 -g $(genome) > $@
 
-$(tts_down500): $(annot).three_prime_utr.sorted
-	bedtools flank -g $(genome) -s -l 0 -r 500 -i $? | bedtools slop -s -l 1 -r 0 -g $(genome) | awk -v OFS="\t" '{$$3 = "TTS [0, 500]"; print $$0}' > $@
+$(tts_down500): $(annot).three_prime_utr.sorted $(genome)
+	bedtools flank -g $(genome) -s -l 0 -r 500 -i $< | bedtools slop -s -l 1 -r 0 -g $(genome) | awk -v OFS="\t" '{$$3 = "TTS [0, 500]"; print $$0}' > $@
 
 name2symbol = ./c_elegans.PRJNA13758.WS267.xrefs.name2symbol.sh
 $(symbol): %.symbol: %
-	$(name2symbol) $? | sort -V | uniq > $@
+	$(name2symbol) $< | sort -V | uniq > $@
 
 name2gene = ./c_elegans.PRJNA13758.WS267.xrefs.name2gene.sh
 $(gene): %.gene: %
-	$(name2gene) $? | sort -V | uniq > $@
+	$(name2gene) $< | sort -V | uniq > $@
 
 $(uniq_genes): $(annot).intron.sorted.names.gene $(annot).exon.sorted.names.gene $(annot).three_prime_utr.sorted.names.gene
 	cat $^ | sort -V | uniq > $@
