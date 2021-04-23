@@ -4,17 +4,17 @@ annot_orig := c_elegans.PRJNA13758.WS267.annotations.gff3.gz
 annot := $(annot_orig).ucsc_chr
 
 regions := $(annot).intron $(annot).exon $(annot).ncrna $(annot).three_prime_utr $(annot).five_prime_utr $(annot).pseudogene $(annot).pseudogene_exon $(annot).promoter $(annot).enhancer \
-		  $(annot).gene_structures $(annot).gene $(annot).gene_structures_all $(annot).tandem_repeat
+		  $(annot).gene_structures $(annot).gene $(annot).gene_structures_all $(annot).tandem_repeat $(annot).repeat_region $(annot).telomere
 sorted = $(annot).intron.sorted $(annot).exon.sorted $(annot).ncrna.sorted $(annot).three_prime_utr.sorted $(annot).five_prime_utr.sorted $(annot).pseudogene.sorted $(annot).pseudogene_exon.sorted \
 		 $(annot).promoter.sorted $(annot).enhancer.sorted $(annot).tandem_repeat.sorted \
-		 $(tss_up500).sorted $(tss_down500).sorted $(tts_up500).sorted $(tts_down500).sorted
+		 $(tss_up500).sorted $(tss_down500).sorted $(tts_up500).sorted $(tts_down500).sorted $(annot).repeat_region.sorted $(annot).telomere.sorted
 gff := $(annot).intron.gff $(annot).exon.gff $(annot).ncrna.gff $(annot).three_prime_utr.gff $(annot).five_prime_utr.gff $(annot).pseudogene.gff $(annot).pseudogene_exon.gff \
-	  $(annot).promoter.gff $(annot).enhancer.gff $(annot).gene_structures.gff $(annot).gene_structures_all.gff $(annot).tandem_repeat.gff
+	  $(annot).promoter.gff $(annot).enhancer.gff $(annot).gene_structures.gff $(annot).gene_structures_all.gff $(annot).tandem_repeat.gff $(annot).repeat_region.gff $(annot).telomere.gff
 gff_sorted_gz := $(gff:=.sorted.gz)
 gff_tbi := $(gff_sorted_gz:=.tbi)
 merged = $(annot).intron.sorted.merged $(annot).exon.sorted.merged $(annot).ncrna.sorted.merged $(annot).three_prime_utr.sorted.merged $(annot).five_prime_utr.sorted.merged \
 		 $(annot).pseudogene.sorted.merged $(annot).pseudogene_exon.sorted.merged $(annot).promoter.sorted.merged $(annot).enhancer.sorted.merged \
-		 $(tss_up500).sorted.merged $(tss_down500).sorted.merged $(tts_up500).sorted.merged $(tts_down500).sorted.merged
+		 $(tss_up500).sorted.merged $(tss_down500).sorted.merged $(tts_up500).sorted.merged $(tts_down500).sorted.merged $(annot).repeat_region.sorted.merged
 merged_without_strand := $(annot).tandem_repeat.sorted.merged
 names := $(annot).intron.sorted.names $(annot).exon.sorted.names $(annot).ncrna.sorted.names $(annot).three_prime_utr.sorted.names $(annot).five_prime_utr.sorted.names
 names2 := $(annot).promoter.sorted.names $(annot).enhancer.sorted.names
@@ -86,6 +86,12 @@ $(annot).gene_structures_all: $(annot)
 
 $(annot).tandem_repeat: $(annot)
 	cat $< | grep tandem_repeat > $@
+
+$(annot).repeat_region: $(annot)
+	cat $< | awk '$$2 == "RepeatMasker" && $$3 == "repeat_region"' > $@
+
+$(annot).telomere: $(annot)
+	cat $< | awk '$$2 == "RepeatMasker"' | grep -e "(TTAGGC)n" -e "(GCCTAA)n" > $@
 
 $(annot).tandem_repeat.stats.csv: $(annot).tandem_repeat
 	cat $< | sed -E -e "1i\num_copies,k" -e "s/.*Note=([0-9]+) copies of ([0-9]+)mer.*/\1,\2/" > $@
